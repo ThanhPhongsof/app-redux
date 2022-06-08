@@ -1,44 +1,22 @@
-import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import { debounce } from "lodash";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getNews, setQuery } from "../sagas/news/newsSlice";
 
 const HackerNews = () => {
-  const [hits, setHits] = useState([]);
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-  const handleFetchData = useRef({});
-  const [url, setUrl] = useState(
-    `https://hn.algolia.com/api/v1/search?query=react`
+  const { hits, loading, errorMessage, query } = useSelector(
+    (state) => state.news
   );
 
-  const isMounted = useRef(true);
-
+  const dispatch = useDispatch();
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+    dispatch(getNews(query));
+  }, [dispatch, query]);
 
-  handleFetchData.current = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(url);
-      setTimeout(() => {
-        if (isMounted.current) {
-          setHits(response.data?.hits || []);
-          setLoading(false);
-        }
-      }, 3000);
-    } catch (error) {
-      setLoading(false);
-      setErrorMessage(`The error happend ${error}`);
-    }
-  };
+  const handleChangeQuery = debounce((e) => {
+    dispatch(setQuery(e.target.value));
+  }, 250);
 
-  useEffect(() => {
-    handleFetchData.current();
-  }, [url]);
   return (
     <div className="w-2/4 p-5 mx-auto mt-5 mb-5 bg-white rounded-lg shadow-md">
       <div className="flex mb-5 gap-x-5">
@@ -47,16 +25,8 @@ const HackerNews = () => {
           className="block w-full p-5 transition-all border border-gray-200 rounded-md focus:border-blue-400"
           placeholder="Typing your keyword..."
           defaultValue={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChangeQuery}
         />
-        <button
-          onClick={() =>
-            setUrl(`https://hn.algolia.com/api/v1/search?query=${query}`)
-          }
-          className="flex-shrink-0 p-5 font-semibold text-white bg-blue-500 rounded-md"
-        >
-          Fetching
-        </button>
       </div>
       {loading && (
         <div className="w-8 h-8 mx-auto my-10 border-4 border-r-4 border-blue-500 rounded-full loading border-r-transparent animate-spin"></div>

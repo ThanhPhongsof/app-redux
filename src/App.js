@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import "./App.css";
+import React from "react";
 import HackerNews from "./components/HackerNews";
+import "./App.css";
 
 function App() {
   return (
